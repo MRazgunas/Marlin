@@ -125,6 +125,11 @@ typedef struct {
   #endif
 
   uint32_t segment_time;
+  
+  #ifdef LASER_CTRL
+    unsigned long laser_ttlmodulation;
+    unsigned long laser_drvpwr;
+  #endif 
 
 } block_t;
 

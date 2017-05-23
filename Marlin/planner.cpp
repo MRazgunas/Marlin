@@ -413,6 +413,10 @@ void Planner::check_axes_activity() {
       unsigned char tail_e_to_p_pressure = baricuda_e_to_p_pressure;
     #endif
   #endif
+  #ifdef LASER_CTRL
+    unsigned char tail_laser_ttl_modulation = laser_ttl_modulation;
+    unsigned char tail_laser_drv_pwr = laser_drv_pwr;
+  #endif
 
   if (blocks_queued()) {
 
@@ -430,6 +434,11 @@ void Planner::check_axes_activity() {
       #if HAS_HEATER_2
         tail_e_to_p_pressure = block->e_to_p_pressure;
       #endif
+    #endif
+    #ifdef LASER_CTRL
+    block = &block_buffer[block_buffer_tail];
+    tail_laser_ttl_modulation = block->laser_ttlmodulation;
+    tail_laser_drv_pwr = block->laser_drvpwr;
     #endif
 
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
@@ -524,6 +533,11 @@ void Planner::check_axes_activity() {
     #if HAS_HEATER_2
       analogWrite(HEATER_2_PIN, tail_e_to_p_pressure);
     #endif
+  #endif
+
+  // add Laser TTL Modulation(PWM) Control 
+  #ifdef LASER_CTRL
+    analogWrite(LASER_TTL_PIN, tail_laser_ttl_modulation);
   #endif
 }
 
@@ -822,6 +836,12 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #if ENABLED(BARICUDA)
     block->valve_pressure = baricuda_valve_pressure;
     block->e_to_p_pressure = baricuda_e_to_p_pressure;
+  #endif
+
+  // Add update block variables for LASER control 
+  #ifdef LASER_CTRL
+    block->laser_ttlmodulation = laser_ttl_modulation;
+    block->laser_drvpwr = laser_drv_pwr;
   #endif
 
   block->active_extruder = extruder;

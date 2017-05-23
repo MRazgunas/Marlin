@@ -688,6 +688,12 @@ XYZ_CONSTS_FROM_CONFIG(float, max_length,     MAX_LENGTH);
 XYZ_CONSTS_FROM_CONFIG(float, home_bump_mm,   HOME_BUMP_MM);
 XYZ_CONSTS_FROM_CONFIG(signed char, home_dir, HOME_DIR);
 
+// Add laser control variables
+#ifdef LASER_CTRL
+   int laser_ttl_modulation = 0;
+   int laser_drv_pwr = 0;
+#endif
+
 /**
  * ***************************************************************************
  * ******************************** FUNCTIONS ********************************
@@ -3171,6 +3177,12 @@ void gcode_get_destination() {
 
   if (code_seen('F') && code_value_linear_units() > 0.0)
     feedrate_mm_s = MMM_TO_MMS(code_value_linear_units());
+
+  #ifdef LASER_CTRL
+     if (code_seen('S')){
+        laser_ttl_modulation=constrain(code_value_linear_units(),0,255);
+     } 
+  #endif  //LASER_CTRL if-end
 
   #if ENABLED(PRINTCOUNTER)
     if (!DEBUGGING(DRYRUN))
@@ -10189,6 +10201,29 @@ void process_next_command() {
 
       #endif // BLINKM
 
+      // For LASER CONTROL, added M160, M161/M162 codes   	
+      // M160 Sxxx : Laser TTL Modulation command
+      // M161 : Laser Driver Power On command
+      // M162 : Laser Driver Power Off command
+      #ifdef LASER_CTRL
+        case 160: //M160 Laser TTL modulation control(PWM)
+          if (code_seen('S')){
+            laser_ttl_modulation=constrain(code_value_linear_units(),0,255);
+          }
+          else {
+            laser_ttl_modulation=0;
+          }
+          break;
+        case 161: //M161 Laser driver power on
+          laser_drv_pwr = 1;
+          laser_ttl_modulation = 0;
+          break;
+        case 162: //M162 Laser driver power off
+          laser_drv_pwr = 0;
+          laser_ttl_modulation = 0;
+          break;
+      #endif
+
       #if ENABLED(MIXING_EXTRUDER)
         case 163: // M163: Set a component weight for mixing extruder
           gcode_M163();
@@ -12319,6 +12354,15 @@ void setup() {
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     setup_endstop_interrupts();
+  #endif
+  
+  // Add initializer output pin for Laser control
+  // Add initialize PIN output Low
+  #ifdef LASER_CTRL
+	SET_OUTPUT(LASER_PWR_PIN);
+	digitalWrite(LASER_PWR_PIN, LOW);
+	SET_OUTPUT(LASER_TTL_PIN);
+	digitalWrite(LASER_TTL_PIN, LOW);
   #endif
 }
 

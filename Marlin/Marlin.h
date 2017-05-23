@@ -429,4 +429,9 @@ void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s
   bool axis_unhomed_error(const bool x, const bool y, const bool z);
 #endif
 
+#ifdef LASER_CTRL
+extern int laser_ttl_modulation;
+extern int laser_drv_pwr;
+#endif
+
 #endif //MARLIN_H

@@ -127,6 +127,11 @@
   #define MAX6675_SS       66 // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
 #endif
 
+#ifdef LASER_CTRL
+	#define LASER_PWR_PIN	42
+	#define LASER_TTL_PIN	44
+#endif
+
 //
 // Augmentation for auto-assigning RAMPS plugs
 //
